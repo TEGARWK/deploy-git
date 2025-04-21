@@ -19,20 +19,39 @@ jobs:
           key: ${{ secrets.SSH_PRIVATE_KEY }}
           port: 64000
           script: |
+            # Memastikan folder /var/www/html/cicd ada
             if [ ! -d "/var/www/html/cicd" ]; then
               mkdir -p /var/www/html/cicd
             fi
 
+            # Memastikan folder Tegar ada
             if [ ! -d "/var/www/html/cicd/Tegar" ]; then
               mkdir -p /var/www/html/cicd/Tegar
             fi
 
             cd /var/www/html/cicd/Tegar
 
+            # Jika .git tidak ada, clone repository
             if [ ! -d ".git" ]; then
               git clone https://github.com/${{ github.repository }}.git .
             else
               git pull origin main
             fi
 
-            chmod -R 755 /var/www/html/cicd
+            # Salin index.html ke folder root dan buat login.html dengan redirect
+            cp index.html /var/www/html/cicd/Tegar/index.html
+
+            # Membuat login.html yang akan redirect ke index.html
+            echo '<!DOCTYPE html>
+            <html>
+            <head>
+            <meta http-equiv="refresh" content="0; url=index.html" />
+            <title>Redirecting...</title>
+            </head>
+            <body>
+            <p>Redirecting to <a href="index.html">index.html</a></p>
+            </body>
+            </html>' > /var/www/html/cicd/Tegar/login.html
+
+            # Ubah hak akses folder agar bisa diakses
+            chmod -R 755 /var/www/html/cicd/Tegar
